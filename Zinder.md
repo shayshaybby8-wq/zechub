@@ -491,7 +491,7 @@ So Zinder can serve different types of consumers without forcing all of them thr
 This demonstrates the central architectural principle of Zinder: **the blockchain is indexed once, while different applications can consume the resulting indexed data through interfaces suited to their specific needs.**
 
 
-#Why Zinder Matters
+# Why Zinder Matters
 
 Zinder represents a shift from traditional, single-consumer indexers such as `lightwalletd` toward a more flexible and modular approach to Zcash infrastructure.
 
