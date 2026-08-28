@@ -153,3 +153,341 @@ This can prevent unnecessary failures caused by unsupported functionality.
 
 Because Zinder separates the canonical chain data from wallet-specific projections, wallet queries can be served from data structures designed specifically for wallet needs rather than repeatedly processing raw blockchain data.
 
+# INSTALLATION AND SET UP OF ZINDER
+
+## Step 1: Set Up Zebra
+
+The first component you need is **Zebra**, the Zcash full node.
+
+Zebra connects to the Zcash network and maintains the blockchain. Zinder does not replace Zebra; instead, Zinder uses Zebra as its source of blockchain data.
+
+The relationship is:
+
+```text
+Zcash network → Zebra → Zinder
+```
+
+For the setup described in the repository, the testnet Zebra environment can be started using the Z3 platform stack:
+
+```bash
+Z3_NETWORK=testnet docker compose up -d
+```
+
+This gives Zinder a Zcash node from which it can obtain the blockchain data.
+
+---
+
+## Step 2: Obtain the Zinder Source
+
+Clone the Zinder repository and enter it:
+
+```bash
+git clone https://github.com/gustavovalverde/zinder.git
+cd zinder
+```
+
+Zinder is written in **Rust**, and the repository provides both Docker-based deployment and Linux release bundles.
+
+For a first setup, the Docker/Compose method is the simpler approach.
+
+---
+
+## Step 3: Start the Zinder Services
+
+Once Zebra is running, start Zinder using its testnet configuration:
+
+```bash
+docker compose --env-file deploy/.env.testnet \
+  -f deploy/docker-compose.yml up -d --build
+```
+
+This starts the wallet-serving Zinder topology.
+
+The important thing is that Zinder is **not one giant process**. It separates its responsibilities into independent services.
+
+Those services are:
+
+1. `zinder-ingest`
+2. `zinder-projector`
+3. `zinder-query`
+4. `zinder-compat-lightwalletd`
+
+---
+
+# Step 4: `zinder-ingest` Builds the Canonical Chain
+
+The first important Zinder process is **`zinder-ingest`**.
+
+It connects to Zebra and imports the blockchain into Zinder's canonical storage.
+
+Its responsibilities include:
+
+* Constructing the initial chain
+* Following new blocks
+* Handling chain reorganizations
+* Maintaining the canonical event stream
+* Maintaining live mempool state
+
+Most importantly, **`zinder-ingest` is the only process that writes the canonical chain state**.
+
+You can think of it as:
+
+> **Zebra gives Zinder the blockchain; `zinder-ingest` turns that blockchain into Zinder's authoritative indexed chain.**
+
+You wait for ingestion to catch up before treating the service as ready.
+
+The repository provides:
+
+```bash
+curl -fsS http://127.0.0.1:19105/readyz
+```
+
+A successful readiness response means the canonical writer has reached the required state, including canonical catch-up and the mempool snapshot.
+
+---
+
+# Step 5: `zinder-projector` Creates the Wallet Data
+
+Next, **`zinder-projector`** takes the canonical chain information and creates the wallet-specific projection.
+
+### Why is this necessary?
+
+The raw blockchain is not organized in the most convenient form for a wallet.
+
+A wallet wants to efficiently answer questions such as:
+
+> **Which transactions belong to this wallet?**
+
+> **What outputs are relevant to this wallet?**
+
+> **What is the wallet's transaction history?**
+
+The projector builds the data required to answer these kinds of wallet queries efficiently.
+
+Importantly, **`zinder-projector` is the only process that writes the wallet projection**.
+
+So there are now two distinct stages:
+
+```text
+zinder-ingest
+      ↓
+Canonical blockchain data
+      ↓
+zinder-projector
+      ↓
+Wallet-oriented data
+```
+
+The projector also has a readiness endpoint:
+
+```bash
+curl -fsS http://127.0.0.1:19110/readyz
+```
+
+It does not become ready simply because it has started; it needs to reach the appropriate authenticated chain fence from the ingest side.
+
+---
+
+# Step 6: Start `zinder-query`
+
+Now you have the indexed chain and the wallet projection.
+
+The next component is **`zinder-query`**.
+
+This is the service that exposes Zinder's **native `WalletQuery` protocol**.
+
+Applications do **not** directly open Zinder's RocksDB files. Instead, they communicate with `zinder-query` through the WalletQuery API.
+
+Conceptually:
+
+```text
+Application
+     ↓
+WalletQuery
+     ↓
+zinder-query
+     ↓
+Zinder's indexed data
+```
+
+The native query service is a read service; it does not write the canonical or wallet stores.
+
+You can test the native API with:
+
+```bash
+grpcurl -plaintext -d '{}' 127.0.0.1:19102 \
+  zinder.v1.wallet.WalletQuery/ServerInfo
+```
+
+`ServerInfo` tells the client what capabilities that particular Zinder deployment actually provides.
+
+Clients are expected to use those advertised capability strings rather than guessing capabilities from the Zinder version.
+
+---
+
+# Step 7: Optionally Enable the `lightwalletd` Compatibility Service
+
+This step is particularly important if you want to connect **existing Zcash wallets or applications that already use `lightwalletd`**.
+
+Zinder provides a separate service called:
+
+```text
+zinder-compat-lightwalletd
+```
+
+It speaks the existing `lightwalletd` **`CompactTxStreamer`** protocol and translates those requests into Zinder's serving layer.
+
+So an existing wallet can continue doing:
+
+```text
+Wallet
+   ↓
+CompactTxStreamer
+   ↓
+zinder-compat-lightwalletd
+   ↓
+Zinder
+```
+
+rather than having to be rewritten to understand `WalletQuery`.
+
+The repository explicitly describes this as a separate compatibility service rather than making `lightwalletd` the basis of Zinder's internal architecture.
+
+You can test it with:
+
+```bash
+grpcurl -plaintext -d '{}' 127.0.0.1:19067 \
+  cash.z.wallet.sdk.rpc.CompactTxStreamer/GetLightdInfo
+```
+
+---
+
+# Step 8: Check All Four Services
+
+At this point, the four components should have reached their appropriate readiness states.
+
+For the testnet setup described in the repository:
+
+```bash
+curl -fsS http://127.0.0.1:19105/readyz  # ingest
+curl -fsS http://127.0.0.1:19110/readyz  # projector
+curl -fsS http://127.0.0.1:19106/readyz  # native query
+curl -fsS http://127.0.0.1:19107/readyz  # compatibility
+```
+
+The important thing is that **"the process is running" is not the same as "the service is ready."**
+
+Zinder uses readiness/fence checks to make sure the canonical data and wallet projection correspond to a consistent chain state before serving wallet data.
+
+---
+
+# How Applications Connect to Zinder
+
+There are two main methods.
+
+## Method 1: A New Application Uses `WalletQuery`
+
+If you are developing a new application, you can use Zinder's native **`WalletQuery`** protocol.
+
+The application connects remotely to `zinder-query`.
+
+For Rust applications, Zinder provides the **`zinder-client` SDK**, which is deliberately remote-first. This means the application communicates with Zinder over the network instead of embedding Zinder's RocksDB storage system inside the application.
+
+The connection therefore looks like:
+
+```text
+Your application
+       ↓
+zinder-client
+       ↓
+WalletQuery / gRPC
+       ↓
+zinder-query
+       ↓
+Zinder
+```
+
+This is useful because the developer doesn't have to understand or directly interact with:
+
+* RocksDB
+* Canonical storage
+* Wallet projection storage
+* Chain ingestion
+* Reorganization handling
+
+The application simply works with the interface exposed by WalletQuery.
+
+---
+
+## Method 2: An Existing `lightwalletd` Application Connects Through the Compatibility Layer
+
+If an application already knows how to communicate with `lightwalletd`, you don't have to rewrite it.
+
+Instead, point it toward:
+
+```text
+zinder-compat-lightwalletd
+```
+
+The application continues speaking:
+
+```text
+CompactTxStreamer
+```
+
+while the compatibility service handles the translation into Zinder's native serving system.
+
+So:
+
+```text
+Existing wallet / app
+        ↓
+CompactTxStreamer
+        ↓
+zinder-compat-lightwalletd
+        ↓
+Zinder
+```
+
+This is one of the major practical advantages of the architecture:
+
+> **Existing lightwalletd clients can have a compatibility path while new applications can use Zinder's native protocol.**
+
+---
+
+# What About Explorers and Other Applications?
+
+Zinder also has an optional **`ExplorerQuery`** plane.
+
+This is intended for applications such as:
+
+* Block explorers
+* Dashboards
+* Analytics applications
+* Other services that need explorer-style data
+
+The repository describes `ExplorerQuery` as providing things such as:
+
+* Block summaries
+* Transaction details
+* Mempool views
+* Search-oriented data
+
+So Zinder can serve different types of consumers without forcing all of them through one protocol.
+
+```text
+                         Zinder
+                           │
+          ┌────────────────┼────────────────┐
+          │                │                │
+          ▼                ▼                ▼
+     WalletQuery     lightwalletd      ExplorerQuery
+          │          Compatibility          │
+          ▼                │                ▼
+    New Wallets       Existing Apps    Explorers /
+    & Apps            & Wallets        Dashboards
+```
+
+This demonstrates the central architectural principle of Zinder: **the blockchain is indexed once, while different applications can consume the resulting indexed data through interfaces suited to their specific needs.**
+
+
