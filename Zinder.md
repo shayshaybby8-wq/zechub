@@ -155,7 +155,7 @@ Because Zinder separates the canonical chain data from wallet-specific projectio
 
 # INSTALLATION AND SET UP OF ZINDER
 
-## Step 1: Set Up Zebra
+# Step 1: Set Up Zebra
 
 The first component you need is **Zebra**, the Zcash full node.
 
@@ -177,7 +177,7 @@ This gives Zinder a Zcash node from which it can obtain the blockchain data.
 
 ---
 
-## Step 2: Obtain the Zinder Source
+# Step 2: Obtain the Zinder Source
 
 Clone the Zinder repository and enter it:
 
@@ -192,7 +192,7 @@ For a first setup, the Docker/Compose method is the simpler approach.
 
 ---
 
-## Step 3: Start the Zinder Services
+# Step 3: Start the Zinder Services
 
 Once Zebra is running, start Zinder using its testnet configuration:
 
@@ -491,7 +491,7 @@ So Zinder can serve different types of consumers without forcing all of them thr
 This demonstrates the central architectural principle of Zinder: **the blockchain is indexed once, while different applications can consume the resulting indexed data through interfaces suited to their specific needs.**
 
 
-
+#Why Zinder Matters
 
 Zinder represents a shift from traditional, single-consumer indexers such as `lightwalletd` toward a more flexible and modular approach to Zcash infrastructure.
 
