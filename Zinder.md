@@ -491,3 +491,27 @@ So Zinder can serve different types of consumers without forcing all of them thr
 This demonstrates the central architectural principle of Zinder: **the blockchain is indexed once, while different applications can consume the resulting indexed data through interfaces suited to their specific needs.**
 
 
+
+
+Zinder represents a shift from traditional, single-consumer indexers such as `lightwalletd` toward a more flexible and modular approach to Zcash infrastructure.
+
+By placing canonical chain data and the `WalletQuery` protocol at the center of its architecture, Zinder separates **data ingestion**, **wallet projections**, and **query services**, allowing the same foundation to support:
+
+* Wallets
+* Block explorers
+* Custom applications
+
+while maintaining compatibility with existing systems.
+
+Features such as:
+
+* **Epoch-pinned reads**
+* **Capability discovery**
+* **Typed errors**
+* **Resumable chain events**
+
+provide developers with more consistent and reliable access to Zcash data.
+
+Overall, Zinder provides a more adaptable foundation for building Zcash applications and infrastructure, with greater **interoperability** and **resilience**.
+
+
