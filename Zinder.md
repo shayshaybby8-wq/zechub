@@ -25,7 +25,6 @@ Zinder reverses this relationship by separating the core indexing logic from con
 * It decouples **chain ingestion**, **wallet projections**, and **query serving** so that one workload does not constrain or overload another.
 * It indexes Zcash data once from a Zebra full node to maintain a consistent canonical view, serving multiple applications and wallets through independently deployable interfaces.
 
-> A consumer protocol should act as a simple **interface** to the indexer, not the blueprint that dictates how the indexer is built internally.
 
 # WalletQuery Protocol
 
