@@ -182,7 +182,7 @@ This gives Zinder a Zcash node from which it can obtain the blockchain data.
 Clone the Zinder repository and enter it:
 
 ```bash
-git clone https://github.com/gustavovalverde/zinder.git
+git clone https://github.com/ZcashFoundation/zinder.git
 cd zinder
 ```
 
