@@ -167,7 +167,7 @@ The relationship is:
 Zcash network → Zebra → Zinder
 ```
 
-For the setup described in the repository, the testnet Zebra environment can be started using the Z3 platform stack:
+For this setup, the testnet Zebra environment can be started using the Z3 platform stack:
 
 ```bash
 Z3_NETWORK=testnet docker compose up -d
@@ -235,8 +235,6 @@ You can think of it as:
 > **Zebra gives Zinder the blockchain; `zinder-ingest` turns that blockchain into Zinder's authoritative indexed chain.**
 
 You wait for ingestion to catch up before treating the service as ready.
-
-The repository provides:
 
 ```bash
 curl -fsS http://127.0.0.1:19105/readyz
@@ -351,7 +349,7 @@ Zinder
 
 rather than having to be rewritten to understand `WalletQuery`.
 
-The repository explicitly describes this as a separate compatibility service rather than making `lightwalletd` the basis of Zinder's internal architecture.
+This is explicitly described as a separate compatibility service rather than making `lightwalletd` the basis of Zinder's internal architecture.
 
 You can test it with:
 
@@ -366,7 +364,7 @@ grpcurl -plaintext -d '{}' 127.0.0.1:19067 \
 
 At this point, the four components should have reached their appropriate readiness states.
 
-For the testnet setup described in the repository:
+For the testnet setup described:
 
 ```bash
 curl -fsS http://127.0.0.1:19105/readyz  # ingest
