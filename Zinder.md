@@ -10,7 +10,7 @@ Zcash already has indexers, the problem is these indexers frequently constrained
 
 ## Tight Coupling
 
-The major issue is tight coupling. Coupling means an indexer's internal architecture is heavily dependent on the specific protocol or requirements of the application consuming its data.
+The major issue was tight coupling. Coupling means an indexer's internal architecture is heavily dependent on the specific protocol or requirements of the application consuming its data.
 
 When an indexer is built strictly around `lightwalletd`'s requirements, its internal assumptions become hardcoded to match. If a new application requires different data structures or query behaviors, the indexer's internal code must be altered or rewritten to accommodate it.
 
