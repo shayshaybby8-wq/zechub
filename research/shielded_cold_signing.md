@@ -44,7 +44,7 @@ Keys are central to the relationship between the companion wallet and the hardwa
 
 ### The Key Hierarchy
 
-![Zcash wallet key hierarchy](wallet_key_hierarchy.png)
+![Zcash wallet key hierarchy](./wallet_key_hierarchy.png)
 
 **1. Spending Key**
 
@@ -198,7 +198,7 @@ If the companion computer or phone is compromised, an attacker may be able to in
 
 This separation allows the companion wallet to perform transaction construction and computational tasks without giving it direct access to the key material required to authorize the spend.
 
-![Key isolation between the companion wallet and hardware wallet](../images/key-isolation.png)
+![Key isolation between the companion wallet and hardware wallet](./key_isolation_boundary.png)
 
 ### Viewing Key vs. Spending Key
 
@@ -266,7 +266,7 @@ This separates **proving authority from spending authority**. A prover can perfo
 
 ## The Lifecycle of a PCZT
 
-![PCZT lifecycle](../images/pczt-lifecycle.png)
+![PCZT lifecycle](./pczt_lifecycle_seven_stages.png)
 
 ## Real World Hardware Wallet Implementations
 
@@ -387,7 +387,7 @@ The computationally intensive work, such as transaction construction and proof g
 
 The important security property is that the **private spending authority remains on the Ledger**. The host receives the resulting authorization data, not the private key itself.
 
-![Ledger signing workflow](../images/ledger-signing-workflow.png)
+![Ledger signing workflow](./companion_ledger_pczt_final_flow.png)
 
 ---
 
@@ -478,7 +478,7 @@ The evolution is therefore better understood as several related developments rat
 ↓
 **Ironwood-related development**
 
-![Evolution of Zcash Ledger support](../images/ledger-evolution.png)
+![Evolution of Zcash Ledger support](./ywallet_to_zkool_ledger_timeline.png)
 
 ---
 
@@ -498,7 +498,7 @@ The flow can therefore be represented as:
 
 **Keystone → UFVK → Zashi**
 
-![Keystone and Zashi key-isolation flow](../images/keystone-zashi-flow.png)
+![Keystone and Zashi key-isolation flow](./keystone_key_split_flow.png)
 
 #### What Can Zashi Do With the UFVK?
 
@@ -545,7 +545,7 @@ The companion wallet prepares the transaction and transfers the required transac
 
 The resulting signature is then returned to the companion wallet through the QR-code communication channel, allowing the companion wallet to complete the remaining transaction workflow.
 
-![Keystone shielded signing workflow](../images/keystone-signing-flow.png)
+![Keystone shielded signing workflow](./zashi_keystone_pczt_flow.png)
 
 # Hito
 
@@ -564,7 +564,7 @@ When a hardware account is onboarded, the Android wallet receives:
 
 The Android application does **not** receive the hardware wallet's seed or private spending keys.
 
-![Hito onboarding and key isolation](../images/hito-onboarding.png)
+![Hito onboarding and key isolation](./hito_key_split_flow.png)
 
 ## What Does the Hito App Get?
 
@@ -593,7 +593,7 @@ The workflow can be represented as:
 
 The implementation supports **BLE transport** and **BBQr QR export of the signed PCZT**.
 
-![Hito offline signing workflow](../images/hito-signing-workflow.png)
+![Hito offline signing workflow](./android_hito_pczt_flow.png)
 
 At no point does the seed or private spending authority need to cross the boundary between the Hito hardware device and the Android companion wallet.
 
@@ -769,7 +769,7 @@ The hardware wallet therefore does not need to become a complete Zcash node, pro
 
 ## The Evolution in One Picture
 
-![Orchard to Ironwood hardware-wallet evolution](../images/orchard-to-ironwood-hardware-wallet-evolution.png)
+![Orchard to Ironwood hardware-wallet evolution](./orchard_to_ironwood_evolution.png)
 
 **Orchard-era architecture**
 
