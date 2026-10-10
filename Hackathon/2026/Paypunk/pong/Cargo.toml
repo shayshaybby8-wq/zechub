@@ -1,7 +1,0 @@
-[package]
-name = "paypunk-pong"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-paypunk-ipc = { path = "../ipc" }

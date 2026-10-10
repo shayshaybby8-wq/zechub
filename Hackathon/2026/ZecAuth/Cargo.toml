@@ -1,9 +1,0 @@
-[workspace]
-members = [
-    "crates/zecauth-core",
-    "crates/zecauth-cli",
-    "crates/zecauth-server",
-    "crates/zecauth-ffi",
-    "crates/zecauth-testvectors",
-]
-resolver = "2"
